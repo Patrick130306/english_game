@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # MongoDB数据库服务
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=english_game
+    restart: unless-stopped
+
+  # 后端API服务
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongodb:27017/english_game
+      - JWT_SECRET=your_jwt_secret_key_here
+      - JWT_EXPIRE=24h
+    restart: unless-stopped
+
+  # 前端React应用
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
